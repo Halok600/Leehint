@@ -1,0 +1,23 @@
+{
+  "manifest_version": 3,
+  "name": "Leehint",
+  "version": "1.0",
+  "description": "Get hints for LeetCode problems using Gemini.",
+  "permissions": [
+    "activeTab",
+    "scripting"
+  ],
+  "host_permissions": [
+    "https://leetcode.com/problems/*"
+  ],
+  "action": {
+    "default_popup": "popup.html",
+    "default_icon": "icon.png"
+  },
+  "content_scripts": [         
+    {
+      "matches": ["https://leetcode.com/problems/*"],
+      "js": ["content.js"]
+    }
+  ]                         
+}

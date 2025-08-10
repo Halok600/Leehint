@@ -1,56 +1,79 @@
 document.addEventListener('DOMContentLoaded', function() {
-  // --- PASTE YOUR API KEY HERE ---
-  
-  // -----------------------------
-
+  // Get all our HTML elements
   const getHintBtn = document.getElementById('getHintBtn');
+  const getHint2Btn = document.getElementById('getHint2Btn');
+  const solutionButtons = document.getElementById('solution-buttons');
+  const getPythonBtn = document.getElementById('getPythonBtn');
+  const getJavaBtn = document.getElementById('getJavaBtn');
+  const getCppBtn = document.getElementById('getCppBtn');
   const hintDisplay = document.getElementById('hint-display');
+  
   const GEMINI_API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=${GEMINI_API_KEY}`;
+  let fullProblemText = ''; // Variable to store the problem text
 
-  // This function sends the problem text to Gemini
-  async function getGeminiHint(problemText) {
-    hintDisplay.innerText = 'Getting hint from Gemini... 🤔';
-    
-    // This is the prompt we send to the AI
-    const prompt = `You are a LeetCode assistant. A user is stuck on the following problem. Provide a small, high-level hint to get them started. Do not give away the solution or any code. Here is the problem: ${problemText}`;
-
+  // Reusable function to call the Gemini API
+  async function getGeminiResponse(prompt) {
+    hintDisplay.innerHTML = 'Getting response from Gemini... 🤔'; // Use innerHTML for potential spinners later
     try {
       const response = await fetch(GEMINI_API_URL, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           contents: [{ parts: [{ text: prompt }] }],
         }),
       });
-
-      if (!response.ok) {
-        throw new Error(`API request failed with status ${response.status}`);
-      }
-
+      if (!response.ok) throw new Error(`API request failed: ${response.status}`);
       const data = await response.json();
-      const hint = data.candidates[0].content.parts[0].text;
-      hintDisplay.innerText = hint; // Display the hint in our popup!
+      const text = data.candidates[0].content.parts[0].text;
+      hintDisplay.innerHTML = marked.parse(text); // Parse the markdown response
+      return true;
     } catch (error) {
       console.error('Error fetching from Gemini API:', error);
-      hintDisplay.innerText = 'Failed to get a hint. Check the console for errors.';
+      hintDisplay.innerText = 'Failed to get a response. Check the console for errors.';
+      return false;
     }
   }
 
-  // Updated button click listener
+  // Function to get a solution for a specific language
+  async function getSolution(language) {
+    const prompt = `You are a LeetCode assistant. A user wants the full solution to the following problem. Provide a clear, well-explained solution in ${language}, including the code and an explanation of the logic. Format the code in a markdown block. Here is the problem: ${fullProblemText}`;
+    await getGeminiResponse(prompt);
+  }
+
+  // --- Event Listeners ---
+
+  // Level 1 Hint
   getHintBtn.addEventListener('click', function() {
     hintDisplay.innerText = 'Getting problem from page...';
     chrome.tabs.query({ active: true, currentWindow: true }, function(tabs) {
-      chrome.tabs.sendMessage(tabs[0].id, { action: 'getProblem' }, function(response) {
+      chrome.tabs.sendMessage(tabs[0].id, { action: 'getProblem' }, async function(response) {
         if (response && response.text && response.text !== 'Could not find problem text.') {
-          // If we successfully get the text, call our new Gemini function
-          getGeminiHint(response.text);
+          fullProblemText = response.text;
+          const prompt = `You are a LeetCode assistant... Provide a small, high-level hint... Here is the problem: ${fullProblemText}`;
+          const success = await getGeminiResponse(prompt);
+          if (success) {
+            getHintBtn.style.display = 'none';
+            getHint2Btn.style.display = 'block';
+          }
         } else {
-          console.error('FAILED: Could not find problem text on the page.');
           hintDisplay.innerText = 'Error: Could not read the problem from this page.';
         }
       });
     });
   });
+
+  // Level 2 Hint
+  getHint2Btn.addEventListener('click', async function() {
+    const prompt = `You are a LeetCode assistant... Provide a more detailed hint... Here is the problem: ${fullProblemText}`;
+    const success = await getGeminiResponse(prompt);
+    if (success) {
+      getHint2Btn.style.display = 'none';
+      solutionButtons.style.display = 'flex'; // Show the language buttons
+    }
+  });
+
+  // Solution Buttons
+  getPythonBtn.addEventListener('click', () => getSolution('Python'));
+  getJavaBtn.addEventListener('click', () => getSolution('Java'));
+  getCppBtn.addEventListener('click', () => getSolution('C++'));
 });

@@ -1,15 +1,33 @@
 <!DOCTYPE html>
 <html>
+
 <head>
   <title>Leehint</title>
   <link rel="stylesheet" href="style.css">
 </head>
+
 <body>
   <h1>Leehint</h1>
   <p>Stuck on a problem? Get a hint!</p>
+
+  <!-- Main Action Buttons -->
   <button id="getHintBtn">Get Level 1 Hint</button>
+  <button id="getHint2Btn" style="display:none; margin-top:5px;">Get Level 2 Hint</button>
+
+  <!-- Container for Solution Buttons -->
+  <div id="solution-buttons" style="display:none; margin-top:5px;">
+    <button id="getPythonBtn">Python Solution</button>
+    <button id="getJavaBtn">Java Solution</button>
+    <button id="getCppBtn">C++ Solution</button>
+  </div>
+  
   <div id="hint-display"></div>
+
+  <div id="hint-display"></div>
+
   <script src="config.js"></script>
+  <script src="marked.min.js"></script>
   <script src="popup.js"></script>
 </body>
+
 </html>

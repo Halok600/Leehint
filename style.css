@@ -26,3 +26,13 @@ button:hover {
   background-color: #f0f0f0;
   border-radius: 5px;
 }
+#solution-buttons {
+  display: flex;
+  justify-content: space-around;
+}
+
+#solution-buttons button {
+  width: 30%;
+  font-size: 12px;
+  padding: 8px;
+}

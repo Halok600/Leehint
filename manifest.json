@@ -5,7 +5,8 @@
   "description": "Get hints for LeetCode problems using Gemini.",
   "permissions": [
     "activeTab",
-    "scripting"
+    "scripting",
+    "storage" 
   ],
   "host_permissions": [
     "https://leetcode.com/problems/*"
